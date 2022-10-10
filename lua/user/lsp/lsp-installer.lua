@@ -1,4 +1,4 @@
-local servers = { "bashls", "pylsp", "texlab", "sumneko_lua" }
+local servers = { "bashls", "pylsp", "texlab", "sumneko_lua", "arduino_language_server" }
 
 local status, lsp_installer_servers = pcall(require, "nvim-lsp-installer.servers")
 if not status then
@@ -32,6 +32,11 @@ lsp_installer.on_server_ready(function(server)
         opts = vim.tbl_deep_extend("force", bashls_opts, opts)
     end
 
+    if server.name == "pylsp" then
+        local pylsp_opts = require("user.lsp.settings.pylsp")
+        opts = vim.tbl_deep_extend("force", pylsp_opts, opts)
+    end
+
     if server.name == "texlab" then
         local texlab_opts = require("user.lsp.settings.texlab")
         opts = vim.tbl_deep_extend("force", texlab_opts, opts)
@@ -42,9 +47,12 @@ lsp_installer.on_server_ready(function(server)
         opts = vim.tbl_deep_extend("force", sumneko_opts, opts)
     end
 
-    if server.name == "pylsp" then
-        local pylsp_opts = require("user.lsp.settings.pylsp")
-        opts = vim.tbl_deep_extend("force", pylsp_opts, opts)
+    if server.name == "arduino_language_server" then
+        opts.on_new_config = function (config, root_dir)
+            local partial_cmd = server:get_default_options().cmd
+            local MY_FQBN = "arduino:avr:uno"
+            config.cmd = vim.list_extend(partial_cmd, { "-fqbn", MY_FQBN })
+        end
     end
 
     -- This setup() function is exactly the same as lspconfig's setup function.
